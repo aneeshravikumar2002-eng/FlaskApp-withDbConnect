@@ -44,12 +44,13 @@ CREATE TABLE users (
     phone VARCHAR(20),
     place VARCHAR(100)
 );
+ 
 
-Installation on EC2
+## Installation on EC2
 
 SSH into your EC2 and run:
 
-# Update packages
+## Update packages
 sudo dnf update -y
 
 # Install pip
