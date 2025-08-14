@@ -45,7 +45,7 @@ CREATE TABLE users (
     place VARCHAR(100)
 );
  
-
+---
 ## Installation on EC2
 
 SSH into your EC2 and run:
