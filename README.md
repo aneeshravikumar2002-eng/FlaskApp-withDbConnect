@@ -92,13 +92,8 @@ Screenshot
 
 Form UI:
 
-+-------------------+
-| Username: [     ] |
-| Phone:    [     ] |
-| Place:    [     ] |
-| [ Save ]          |
-+-------------------+
+<img width="843" height="629" alt="image" src="https://github.com/user-attachments/assets/ea972a71-7dc3-4bc0-803f-d047c79af6c2" />
+
 
 License
-
 This project is licensed under the MIT License.
