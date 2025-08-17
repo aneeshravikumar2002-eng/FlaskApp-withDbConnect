@@ -1,0 +1,5 @@
+Flask
+Flask_SQLAlchemy
+# Add other dependencies as needed, e.g.:
+# psycopg2-binary
+# mysqlclient
