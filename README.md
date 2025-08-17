@@ -74,10 +74,18 @@ Visit:
 http://<EC2_PUBLIC_IP>:5000
 Example DB Config in app.py
 
+
+
 DB_HOST = "your-rds-endpoint"
 DB_USER = "admin"
 DB_PASS = "yourpassword"
 DB_NAME = "mydb"
 Screenshot
+
+# Multistage Docker build commands
+
+docker build -t multibuildflask \
+  -f ~/FlaskApp-withDbConnect/multistagedocker/Dockerfile \
+  ~/FlaskApp-withDbConnect/
 
 
