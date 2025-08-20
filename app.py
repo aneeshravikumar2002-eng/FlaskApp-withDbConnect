@@ -26,13 +26,20 @@ def index():
 
         conn = get_connection()
         cur = conn.cursor()
-        cur.execute("INSERT INTO users (username, phone, place) VALUES (%s, %s, %s)", 
+        cur.execute("INSERT INTO users (username, phone, place) VALUES (%s, %s, %s)",
                     (username, phone, place))
         conn.commit()
         cur.close()
         conn.close()
         return redirect("/")
-    return render_template("form.html")
+
+    conn = get_connection()
+    cur = conn.cursor(pymysql.cursors.DictCursor)
+    cur.execute("SELECT id, username, phone, place FROM users ORDER BY id DESC")
+    rows = cur.fetchall()
+    cur.close()
+    conn.close()
+    return render_template("form.html", rows=rows)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
