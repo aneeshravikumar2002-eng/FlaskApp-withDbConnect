@@ -20,7 +20,6 @@ flaskapp/
 └── templates/
 └── form.html # HTML form template
 
-
 ---
 
 ## Prerequisites
@@ -44,13 +43,10 @@ CREATE TABLE users (
     phone VARCHAR(20),
     place VARCHAR(100)
 );
- 
-
-## Installation on EC2
-
+Installation on EC2
 SSH into your EC2 and run:
 
-## Update packages
+# Update packages
 sudo dnf update -y
 
 # Install pip
@@ -65,35 +61,31 @@ cd <your-repo>
 
 # Edit RDS credentials in app.py
 nano app.py
-
 Running the App
+
+# Foreground
 python3 app.py
 
-
-Or run in background:
-
+# Background
 nohup python3 app.py &
-
-
-Access the app in your browser:
+Access the App
+Visit:
 
 http://<EC2_PUBLIC_IP>:5000
+Example DB Config in app.py
 
-Example .app.py DB Config
 
-Inside app.py, replace with your RDS details:
 
 DB_HOST = "your-rds-endpoint"
 DB_USER = "admin"
 DB_PASS = "yourpassword"
 DB_NAME = "mydb"
-
 Screenshot
 
-Form UI:
+# Multistage Docker build commands
 
-<img width="843" height="629" alt="image" src="https://github.com/user-attachments/assets/ea972a71-7dc3-4bc0-803f-d047c79af6c2" />
+docker build -t multibuildflask \
+  -f ~/FlaskApp-withDbConnect/multistagedocker/Dockerfile \
+  ~/FlaskApp-withDbConnect/
 
 
-License
-This project is licensed under the MIT License.
