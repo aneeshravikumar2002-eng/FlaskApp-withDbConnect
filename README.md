@@ -63,6 +63,9 @@ pip3 install -r requirements.txt
 
 # Edit RDS credentials in app.py
 nano app.py
+
+# Set Flask secret key (defaults to "change-me" if unset)
+export SECRET_KEY="your-secret-key"
 ```
 
 ## Running the App
