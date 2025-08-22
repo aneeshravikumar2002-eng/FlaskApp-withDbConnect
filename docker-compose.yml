@@ -5,22 +5,27 @@ services:
     ports:
       - "5003:5000"
     environment:
-      - DB_HOST=${DB_HOST:-db}        # defaults to the service name 'db'
-      - DB_USER=${DB_USER:-appuser}
-      - DB_PASS=${DB_PASS:-appsecret}
-      - DB_NAME=${DB_NAME:-mydb}
-    depends_on:
-      db:
-        condition: service_healthy
+      # Defaults work for local DB. Override in .env when using external DB.
+      DB_HOST: ${DB_HOST:-db}
+      DB_USER: ${DB_USER:-appuser}
+      DB_PASS: ${DB_PASS:-appsecret}
+      DB_NAME: ${DB_NAME:-mydb}
+      DB_PORT: ${DB_PORT:-3306}
+      FLASK_SECRET_KEY: ${FLASK_SECRET_KEY:-change_me}
+      FLASK_DEBUG: ${FLASK_DEBUG:-true}
+      DB_SSL_MODE: ${DB_SSL_MODE:-disabled}
+      DB_SSL_CA: ${DB_SSL_CA:-}
+    # No depends_on needed; app waits for DB in code.
 
   db:
     image: mysql:8.0
     container_name: mysql_container
     restart: always
+    # Only start this when we enable the "local-db" profile
+    profiles: ["local-db"]
     environment:
       MYSQL_ROOT_PASSWORD: example
       MYSQL_DATABASE: mydb
-      # Do NOT set MYSQL_USER to 'root'. Create a non-root user instead:
       MYSQL_USER: appuser
       MYSQL_PASSWORD: appsecret
     ports:
@@ -28,12 +33,6 @@ services:
     volumes:
       - db_data:/var/lib/mysql
     command: ["--default-authentication-plugin=mysql_native_password"]
-    healthcheck:
-      test: ["CMD-SHELL", "mysqladmin ping --host=127.0.0.1 --protocol=tcp --user=root --password=example || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 12
-      start_period: 90s
 
 volumes:
   db_data:
