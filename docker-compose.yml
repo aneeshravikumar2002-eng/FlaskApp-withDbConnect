@@ -1,5 +1,3 @@
-version: "4.0"
-
 services:
   flask-app:
     build:
@@ -7,9 +5,9 @@ services:
     ports:
       - "5003:5000"
     environment:
-      - DB_HOST=${DB_HOST:-db} # Use external DB if DB_HOST is set, otherwise default to 'db'
-      - DB_USER=${DB_USER:-root}
-      - DB_PASS=${DB_PASS:-example}
+      - DB_HOST=${DB_HOST:-db}        # defaults to the service name 'db'
+      - DB_USER=${DB_USER:-appuser}
+      - DB_PASS=${DB_PASS:-appsecret}
       - DB_NAME=${DB_NAME:-mydb}
     depends_on:
       db:
@@ -22,18 +20,20 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: example
       MYSQL_DATABASE: mydb
-      MYSQL_USER: root
-      MYSQL_PASSWORD: example
+      # Do NOT set MYSQL_USER to 'root'. Create a non-root user instead:
+      MYSQL_USER: appuser
+      MYSQL_PASSWORD: appsecret
     ports:
       - "3306:3306"
     volumes:
       - db_data:/var/lib/mysql
+    command: ["--default-authentication-plugin=mysql_native_password"]
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-pexample"]
+      test: ["CMD-SHELL", "mysqladmin ping --host=127.0.0.1 --protocol=tcp --user=root --password=example || exit 1"]
       interval: 10s
       timeout: 5s
-      retries: 5
-      start_period: 60s # Increased start period to allow MySQL more time to initialize
+      retries: 12
+      start_period: 90s
 
 volumes:
   db_data:
