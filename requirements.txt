@@ -1,6 +1,6 @@
-Flask==3.1.2
-Flask-SQLAlchemy==3.1.1
-pymysql==1.1.1
+Flask
+Flask_SQLAlchemy
+pymysql
 # Add other dependencies as needed, e.g.:
 # psycopg2-binary
 # mysqlclient

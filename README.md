@@ -1,39 +1,39 @@
 # Flask User Form with MySQL RDS on AWS
 
-A minimal Flask application that collects a username, phone number, and place
-and stores the data in a MySQL table hosted on Amazon RDS. The app is intended
-to run on an Amazon Linux EC2 instance.
+This is a simple **Flask** application that runs on **Amazon Linux EC2** and connects to a **MySQL RDS** database.  
+It provides a web form to collect **username**, **phone number**, and **place**, then stores the data in a MySQL table.
+
+---
 
 ## Features
-
-- HTML form for user details
-- Saves records to RDS MySQL and lists recent entries
+- Simple HTML form
+- Stores user data in AWS RDS MySQL
+- Runs on Amazon Linux 2023 EC2
 - Minimal dependencies
 
-## Project Structure
+---
 
-```
-.
-├── app.py               # Flask backend
-├── templates/
-│   └── form.html        # HTML form template
-├── requirements.txt
-├── Dockerfile
-└── multistagedocker/
-    └── Dockerfile       # Example multi‑stage build
-```
+## Project Structure
+flaskapp/
+│
+├── app.py # Flask backend code
+└── templates/
+└── form.html # HTML form template
+
+---
 
 ## Prerequisites
-
-- Amazon Linux 2023 EC2 instance
-- MySQL database on AWS RDS with security group rules allowing:
+Before running the project, make sure you have:
+- **AWS EC2 instance** running Amazon Linux 2023
+- **AWS RDS MySQL instance** with a database and table created
+- Security group rules allowing:
   - Port **5000** for Flask
-  - Port **3306** between EC2 and RDS
+  - MySQL Port **3306** between EC2 and RDS
+
+---
 
 ## MySQL Setup
-
-Run the following on your RDS instance:
-
+Run this in your MySQL RDS:
 ```sql
 CREATE DATABASE mydb;
 USE mydb;
@@ -43,61 +43,49 @@ CREATE TABLE users (
     phone VARCHAR(20),
     place VARCHAR(100)
 );
-```
+Installation on EC2
+SSH into your EC2 and run:
 
-## EC2 Setup
-
-```bash
 # Update packages
 sudo dnf update -y
 
 # Install pip
 sudo dnf install python3-pip -y
 
+# Install dependencies
+pip3 install flask pymysql
+
 # Clone this repo
 git clone https://github.com/<your-username>/<your-repo>.git
 cd <your-repo>
 
-# Install dependencies
-pip3 install -r requirements.txt
-
 # Edit RDS credentials in app.py
 nano app.py
+Running the App
 
-# Set Flask secret key (defaults to "change-me" if unset)
-export SECRET_KEY="your-secret-key"
-```
-
-## Running the App
-
-```bash
 # Foreground
 python3 app.py
 
 # Background
 nohup python3 app.py &
-```
+Access the App
+Visit:
 
-## Access the App
+http://<EC2_PUBLIC_IP>:5000
+Example DB Config in app.py
 
-Visit `http://<EC2_PUBLIC_IP>:5000` in your browser.
 
-## Example DB Configuration
 
-```python
 DB_HOST = "your-rds-endpoint"
 DB_USER = "admin"
 DB_PASS = "yourpassword"
 DB_NAME = "mydb"
-```
+Screenshot
 
-## Docker (optional)
+# Multistage Docker build commands
 
-Build a multi-stage image:
-
-```bash
 docker build -t multibuildflask \
-  -f multistagedocker/Dockerfile \
-  .
-```
+  -f ~/FlaskApp-withDbConnect/multistagedocker/Dockerfile \
+  ~/FlaskApp-withDbConnect/
+
 
