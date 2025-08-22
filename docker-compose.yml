@@ -1,11 +1,11 @@
-version: "3.8"
+version: "4.0"
 
 services:
   flask-app:
     build:
       context: .
     ports:
-      - "5000:5000"
+      - "5003:5000"
     environment:
       - DB_HOST=${DB_HOST:-db} # Use external DB if DB_HOST is set, otherwise default to 'db'
       - DB_USER=${DB_USER:-root}
@@ -29,11 +29,11 @@ services:
     volumes:
       - db_data:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-pexample"]
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 30s
+      start_period: 60s # Increased start period to allow MySQL more time to initialize
 
 volumes:
   db_data:
