@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>User Form</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form</title>
+    <link rel="stylesheet" href="/static/styles.css"> <!-- Link to the CSS file -->
+    <style>
     :root {
       --bg: #f5f5dc;        /* beige */
       --card: #ffffff;      /* white */
@@ -125,64 +126,64 @@
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="header">
-      <h1>Save User Details</h1>
-      <p class="sub">Enter username, phone, and place — data is stored in MySQL.</p>
-    </div>
-
-    <div class="content">
-      {% with messages = get_flashed_messages() %}
-        {% if messages %}
-          {% for m in messages %}
-            <div class="flash">{{ m }}</div>
-          {% endfor %}
-        {% endif %}
-      {% endwith %}
-
-      <form method="POST">
-        <div class="row">
-          <label for="username">Username</label>
-          <input id="username" name="username" type="text" placeholder="e.g. Alex" required />
+    <div class="container">
+        <div class="header">
+          <h1>Save User Details</h1>
+          <p class="sub">Enter username, phone, and place — data is stored in MySQL.</p>
         </div>
 
-        <div class="row">
-          <label for="phone">Phone</label>
-          <input id="phone" name="phone" type="tel" placeholder="e.g. +91 9876543210" required />
-        </div>
+        <div class="content">
+          {% with messages = get_flashed_messages() %}
+            {% if messages %}
+              {% for m in messages %}
+                <div class="flash">{{ m }}</div>
+              {% endfor %}
+            {% endif %}
+          {% endwith %}
 
-        <div class="row">
-          <label for="place">Place</label>
-          <input id="place" name="place" type="text" placeholder="e.g. Bengaluru" required />
-        </div>
+          <form method="POST">
+            <div class="row">
+              <label for="username">Username</label>
+              <input id="username" name="username" type="text" placeholder="e.g. Alex" required />
+            </div>
 
-        <div class="actions">
-          <button class="save" type="submit">Save</button>
-          <button class="reset" type="reset">Reset</button>
-        </div>
-      </form>
+            <div class="row">
+              <label for="phone">Phone</label>
+              <input id="phone" name="phone" type="tel" placeholder="e.g. +91 9876543210" required />
+            </div>
 
-      {% if rows and rows|length > 0 %}
-      <div class="list">
-        <h3>Recent Entries</h3>
-        <table>
-          <thead>
-            <tr><th>ID</th><th>Username</th><th>Phone</th><th>Place</th></tr>
-          </thead>
-          <tbody>
-            {% for r in rows %}
-            <tr>
-              <td>{{ r.id }}</td>
-              <td>{{ r.username }}</td>
-              <td>{{ r.phone }}</td>
-              <td>{{ r.place }}</td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
+            <div class="row">
+              <label for="place">Place</label>
+              <input id="place" name="place" type="text" placeholder="e.g. Bengaluru" required />
+            </div>
+
+            <div class="actions">
+              <button class="save" type="submit">Save</button>
+              <button class="reset" type="reset">Reset</button>
+            </div>
+          </form>
+
+          {% if rows and rows|length > 0 %}
+          <div class="list">
+            <h3>Recent Entries</h3>
+            <table>
+              <thead>
+                <tr><th>ID</th><th>Username</th><th>Phone</th><th>Place</th></tr>
+              </thead>
+              <tbody>
+                {% for r in rows %}
+                <tr>
+                  <td>{{ r.id }}</td>
+                  <td>{{ r.username }}</td>
+                  <td>{{ r.phone }}</td>
+                  <td>{{ r.place }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% endif %}
+        </div>
       </div>
-      {% endif %}
-    </div>
-  </div>
 </body>
 </html>
