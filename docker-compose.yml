@@ -7,12 +7,13 @@ services:
     ports:
       - "5000:5000"
     environment:
-      - DB_HOST=db
-      - DB_USER=root
-      - DB_PASS=example
-      - DB_NAME=mydb
+      - DB_HOST=${DB_HOST:-db} # Use external DB if DB_HOST is set, otherwise default to 'db'
+      - DB_USER=${DB_USER:-root}
+      - DB_PASS=${DB_PASS:-example}
+      - DB_NAME=${DB_NAME:-mydb}
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 
   db:
     image: mysql:8.0
@@ -27,6 +28,12 @@ services:
       - "3306:3306"
     volumes:
       - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
 volumes:
   db_data:
