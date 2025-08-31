@@ -1,5 +1,4 @@
 import os
-import time
 import logging
 from flask import Flask, render_template, request, redirect, flash
 import pymysql
@@ -8,30 +7,28 @@ app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "change_me")
 app.debug = os.getenv("FLASK_DEBUG", "true").lower() == "true"
 
-# Env-driven DB config (works for both RDS and compose)
-DB_HOST = os.getenv("DB_HOST", "db")              # default to compose service name
+# Env-driven DB config
+DB_HOST = os.getenv("DB_HOST", "db")
 DB_PORT = int(os.getenv("DB_PORT", "3306"))
 DB_USER = os.getenv("DB_USER", "appuser")
 DB_PASS = os.getenv("DB_PASS", "appsecret")
 DB_NAME = os.getenv("DB_NAME", "mydb")
 
-# Optional SSL (useful for RDS). Set DB_SSL_MODE=required and DB_SSL_CA=/path/to/rds-ca-*.pem
-DB_SSL_MODE = os.getenv("DB_SSL_MODE", "disabled")      # disabled|required
-DB_SSL_CA = os.getenv("DB_SSL_CA")                      # path to CA bundle if needed
+DB_SSL_MODE = os.getenv("DB_SSL_MODE", "disabled")
+DB_SSL_CA = os.getenv("DB_SSL_CA")
 
 CONNECT_TIMEOUT = int(os.getenv("DB_CONNECT_TIMEOUT", "5"))
-WAIT_STARTUP_SECS = int(os.getenv("DB_WAIT_STARTUP_SECS", "120"))
 
 logging.basicConfig(level=logging.INFO)
 
+
 def _ssl_args():
     if DB_SSL_MODE.lower() == "required":
-        # If you have an RDS CA bundle, set DB_SSL_CA to its path in the container
         if DB_SSL_CA and os.path.exists(DB_SSL_CA):
             return {"ssl": {"ca": DB_SSL_CA}}
-        # If CA not provided, still try SSL (server’s cert won’t be verified)
         return {"ssl": {}}
     return {}
+
 
 def get_connection():
     return pymysql.connect(
@@ -46,24 +43,9 @@ def get_connection():
         **_ssl_args()
     )
 
-def wait_for_db(max_seconds=WAIT_STARTUP_SECS):
-    start = time.time()
-    while True:
-        try:
-            conn = get_connection()
-            with conn.cursor() as cur:
-                cur.execute("SELECT 1")
-            conn.close()
-            logging.info("Database is reachable at %s:%s.", DB_HOST, DB_PORT)
-            break
-        except Exception as e:
-            if time.time() - start > max_seconds:
-                logging.exception("Database not ready within %ss", max_seconds)
-                raise
-            logging.warning("Waiting for DB %s:%s ... (%s)", DB_HOST, DB_PORT, e)
-            time.sleep(2)
 
 def ensure_schema():
+    """Create table if DB is reachable; ignore errors if not."""
     try:
         conn = get_connection()
         with conn.cursor() as cur:
@@ -79,16 +61,14 @@ def ensure_schema():
         conn.close()
         logging.info("Ensured 'users' table exists.")
     except Exception as e:
-        logging.exception("Failed to ensure schema: %s", e)
-        raise
+        logging.warning("Could not ensure schema (DB not ready?): %s", e)
 
-@app.before_first_request
-def init_app():
-    wait_for_db()
-    ensure_schema()
 
 @app.route("/", methods=["GET", "POST"])
 def index():
+    db_connected = True
+    rows = []
+
     if request.method == "POST":
         username = request.form.get("username", "").strip()
         phone = request.form.get("phone", "").strip()
@@ -106,30 +86,39 @@ def index():
                     (username, phone, place),
                 )
             flash("Data saved successfully!", "success")
-        except pymysql.MySQLError as e:
-            logging.exception("Insert failed: %s", e)
-            flash(f"Failed to insert data into the database: {e}", "error")
+        except Exception as e:
+            db_connected = False
+            logging.warning("Insert failed (DB down?): %s", e)
+            flash("Database not connected. Could not save data.", "error")
         finally:
-            try: conn.close()
-            except: pass
+            try:
+                conn.close()
+            except:
+                pass
 
         return redirect("/")
 
-    # GET: list rows
-    rows = []
+    # GET: list rows if DB is up
     try:
         conn = get_connection()
         with conn.cursor() as cur:
             cur.execute("SELECT id, username, phone, place FROM users ORDER BY id DESC")
             rows = cur.fetchall()
-    except pymysql.MySQLError as e:
-        logging.exception("Select failed: %s", e)
-        flash(f"Failed to fetch data from the database: {e}", "error")
+    except Exception as e:
+        db_connected = False
+        logging.warning("Select failed (DB down?): %s", e)
     finally:
-        try: conn.close()
-        except: pass
+        try:
+            conn.close()
+        except:
+            pass
 
-    return render_template("form.html", rows=rows)
+    return render_template("form.html", rows=rows, db_connected=db_connected)
+
 
 if __name__ == "__main__":
+    # Try to set up schema, but don’t block startup if DB isn’t up
+    with app.app_context():
+        ensure_schema()
+
     app.run(host="0.0.0.0", port=5000)
