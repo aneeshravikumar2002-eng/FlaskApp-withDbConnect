@@ -48,6 +48,7 @@ SSH into your EC2 and run:
 
 # Update packages
 sudo dnf update -y
+sudo yum install git -y
 
 # Install pip
 sudo dnf install python3-pip -y
