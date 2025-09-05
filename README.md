@@ -56,8 +56,8 @@ sudo dnf install python3-pip -y
 pip3 install flask pymysql
 
 # Clone this repo
-git clone https://github.com/<your-username>/<your-repo>.git
-cd <your-repo>
+git clone https://github.com/Shreenivas123/FlaskApp-withDbConnect.git
+cd FlaskApp-withDbConnect
 
 # Edit RDS credentials in app.py
 nano app.py
