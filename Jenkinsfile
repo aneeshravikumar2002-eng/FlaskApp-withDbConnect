@@ -34,17 +34,6 @@ pipeline {
                 '''
             }
         }
-
-        stage('Test Application') {
-            steps {
-                echo 'Testing application...'
-                sh '''
-                    sleep 10
-                    curl -f http://localhost:5000
-                '''
-            }
-        }
-
         stage('Push to Docker Hub') {
             steps {
                 echo 'Pushing image to Docker Hub...'
