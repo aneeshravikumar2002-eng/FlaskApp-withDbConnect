@@ -2,11 +2,12 @@ pipeline {
     agent any
 
     environment {
-        DOCKERHUB_CRED = credentials('dockerhub-login') // Docker Hub credentials
-        SONAR_TOKEN    = credentials('sonar-token')    // SonarQube token
+        DOCKERHUB_CRED = credentials('dockerhub-login')   // Docker Hub credentials
+        SONAR_TOKEN    = credentials('sonar-token')        // SonarQube token
     }
 
     stages {
+
         stage('Checkout Code') {
             steps {
                 echo 'Checking out repository...'
@@ -17,19 +18,17 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 script {
-                    // Use SonarScanner instead of Maven for Python
                     def scannerHome = tool 'SonarScanner'
 
                     withSonarQubeEnv('My SonarQube Server') {
-                        dir('.') {
-                            sh """
-                                ${scannerHome}/bin/sonar-scanner \
-                                    -Dsonar.projectKey=flask-sonar \
-                                    -Dsonar.projectName=flask-sonar \
-                                    -Dsonar.sources=. \
-                                    -Dsonar.login=$SONAR_TOKEN
-                            """
-                        }
+                        sh """
+                            ${scannerHome}/bin/sonar-scanner \
+                                -Dsonar.projectKey=flask-sonar \
+                                -Dsonar.projectName=flask-sonar \
+                                -Dsonar.sources=. \
+                                -Dsonar.python.version=3.10 \
+                                -Dsonar.token=$SONAR_TOKEN
+                        """
                     }
                 }
             }
