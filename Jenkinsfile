@@ -19,14 +19,17 @@ pipeline {
                 script {
                     def mvn = tool 'Default Maven'
                     echo "Maven found at: ${mvn}"
-                    
+
                     withSonarQubeEnv('My SonarQube Server') {
-                        sh """#!/bin/bash
-                            ${mvn}/bin/mvn clean verify sonar:sonar \
-                                -Dsonar.projectKey=flask-sonar \
-                                -Dsonar.projectName='flask-sonar' \
-                                -Dsonar.login=${SONAR_TOKEN}
-                        """
+                        // Run Maven inside repo root or subfolder with pom.xml
+                        dir('.') {
+                            sh """
+                                ${mvn}/bin/mvn clean verify sonar:sonar \
+                                    -Dsonar.projectKey=flask-sonar \
+                                    -Dsonar.projectName='flask-sonar' \
+                                    -Dsonar.login=$SONAR_TOKEN
+                            """
+                        }
                     }
                 }
             }
@@ -35,7 +38,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 echo 'Building Docker image...'
-                sh """#!/bin/bash
+                sh """
                     docker build -t aneesh292002/flask-app:${BUILD_NUMBER} \
                                  -t aneesh292002/flask-app:latest .
                 """
@@ -45,7 +48,7 @@ pipeline {
         stage('Run Docker Container') {
             steps {
                 echo 'Running Docker container...'
-                sh """#!/bin/bash
+                sh """
                     docker stop flask-container || true
                     docker rm flask-container || true
                     docker run -d --name flask-container -p 5001:5000 aneesh292002/flask-app:latest
@@ -57,7 +60,7 @@ pipeline {
             steps {
                 echo 'Pushing image to Docker Hub...'
                 withCredentials([usernamePassword(credentialsId: 'dockerhub-login', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                    sh """#!/bin/bash
+                    sh """
                         echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
                         docker push aneesh292002/flask-app:${BUILD_NUMBER}
                         docker push aneesh292002/flask-app:latest
@@ -77,4 +80,5 @@ pipeline {
         }
     }
 }
+
 
