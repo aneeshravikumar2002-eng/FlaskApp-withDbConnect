@@ -2,7 +2,8 @@ pipeline {
     agent any
 
     environment {
-        DOCKERHUB_USER = credentials('dockerhub-login') // Jenkins credential ID
+        DOCKERHUB_USER = credentials('dockerhub-login') // Jenkins Docker Hub credentials
+        SONAR_TOKEN    = credentials('sonar-token')    // Jenkins SonarQube token credential
     }
 
     stages {
@@ -10,40 +11,64 @@ pipeline {
             steps {
                 echo 'Checking out repository...'
                 git branch: 'main', url: 'https://github.com/aneeshravikumar2002-eng/FlaskApp-withDbConnect.git'
+            }
+        }
 
+        stage('SonarQube Analysis') {
+            steps {
+                script {
+                    def mvn = tool 'Default Maven' // Make sure this matches your Jenkins Maven tool
+                    withSonarQubeEnv('MySonarQubeServer') {
+                        sh """
+                            ${mvn}/bin/mvn clean verify sonar:sonar \
+                                -Dsonar.projectKey=flask-sonar \
+                                -Dsonar.projectName='flask-sonar' \
+                                -Dsonar.login=${SONAR_TOKEN}
+                        """
+                    }
+                }
+            }
+        }
+
+        stage('Quality Gate') {
+            steps {
+                timeout(time: 1, unit: 'HOURS') {
+                    waitForQualityGate abortPipeline: true
+                }
             }
         }
 
         stage('Build Docker Image') {
             steps {
                 echo 'Building Docker image...'
-                sh '''
+                sh """
                     docker build -t aneesh292002/flask-app:${BUILD_NUMBER} \
                                  -t aneesh292002/flask-app:latest .
-                '''
+                """
             }
         }
 
         stage('Run Docker Container') {
             steps {
                 echo 'Running Docker container...'
-                sh '''
+                sh """
                     docker stop flask-container || true
                     docker rm flask-container || true
                     docker run -d --name flask-container -p 5001:5000 aneesh292002/flask-app:latest
-                '''
+                """
             }
         }
+
         stage('Push to Docker Hub') {
             steps {
                 echo 'Pushing image to Docker Hub...'
                 withCredentials([usernamePassword(credentialsId: 'dockerhub-login', usernameVariable: 'DOCKERHUB_USER', passwordVariable: 'DOCKERHUB_PASS')]) {
-                    sh '''
+                    sh """
                         echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USER" --password-stdin
                         docker push aneesh292002/flask-app:${BUILD_NUMBER}
                         docker push aneesh292002/flask-app:latest
                         docker logout
-                    '''
+                    """
                 }
             }
         }
@@ -52,6 +77,9 @@ pipeline {
     post {
         failure {
             echo 'Build failed. Keeping Docker artifacts for debugging.'
+        }
+        success {
+            echo 'Pipeline completed successfully!'
         }
     }
 }
