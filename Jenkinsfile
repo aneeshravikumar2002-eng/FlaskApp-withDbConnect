@@ -32,7 +32,7 @@ pipeline {
                     }
 
                     // Run SonarQube analysis
-                    withSonarQubeEnv('MySonarQubeServer') {
+                    withSonarQubeEnv('My SonarQube Server') {
                         sh """
                             ${mvn}/bin/mvn clean verify sonar:sonar \
                                 -Dsonar.projectKey=flask-sonar \
