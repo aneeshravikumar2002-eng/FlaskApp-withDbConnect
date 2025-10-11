@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        DOCKERHUB_USER = credentials('dockerhub-login') // Docker Hub credentials
+        DOCKERHUB_CRED = credentials('dockerhub-login') // Docker Hub credentials
         SONAR_TOKEN    = credentials('sonar-token')    // SonarQube token
     }
 
@@ -17,7 +17,6 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 script {
-                    // Try to get Maven tool
                     def mvn
                     try {
                         mvn = tool 'Default Maven'
@@ -27,18 +26,19 @@ pipeline {
                         Maven tool 'Default Maven' not found!
                         Please configure Maven in Jenkins under:
                         Manage Jenkins → Global Tool Configuration → Maven
-                        and make sure the name matches exactly.
                         """
                     }
 
-                    // Run SonarQube analysis
-                    withSonarQubeEnv('My SonarQube Server') {
-                        sh """
+                    // Run SonarQube securely
+                    withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN_SECURE')]) {
+                        withSonarQubeEnv('My SonarQube Server') {
+                            sh """#!/bin/bash
                             ${mvn}/bin/mvn clean verify sonar:sonar \
                                 -Dsonar.projectKey=flask-sonar \
                                 -Dsonar.projectName='flask-sonar' \
-                                -Dsonar.login=${SONAR_TOKEN}
-                        """
+                                -Dsonar.login=$SONAR_TOKEN_SECURE
+                            """
+                        }
                     }
                 }
             }
@@ -68,9 +68,9 @@ pipeline {
         stage('Push to Docker Hub') {
             steps {
                 echo 'Pushing image to Docker Hub...'
-                withCredentials([usernamePassword(credentialsId: 'dockerhub-login', usernameVariable: 'DOCKERHUB_USER', passwordVariable: 'DOCKERHUB_PASS')]) {
-                    sh """
-                        echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USER" --password-stdin
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-login', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    sh """#!/bin/bash
+                        echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
                         docker push aneesh292002/flask-app:${BUILD_NUMBER}
                         docker push aneesh292002/flask-app:latest
                         docker logout
@@ -89,4 +89,3 @@ pipeline {
         }
     }
 }
-
