@@ -15,24 +15,18 @@ pipeline {
         }
 
         stage('SonarQube Analysis') {
-            when {
-                expression { fileExists('pom.xml') } // Only run if pom.xml exists
-            }
             steps {
                 script {
-                    try {
-                        def mvn = tool 'Default Maven'
-                        echo "Maven found at: ${mvn}"
-                        withSonarQubeEnv('MySonarQubeServer') {
-                            sh """
-                                ${mvn}/bin/mvn clean verify sonar:sonar \
-                                    -Dsonar.projectKey=flask-sonar \
-                                    -Dsonar.projectName='flask-sonar' \
-                                    -Dsonar.login=${SONAR_TOKEN}
-                            """
-                        }
-                    } catch (err) {
-                        echo "Skipping SonarQube analysis: ${err}"
+                    // Mandatory Maven & SonarQube analysis
+                    def mvn = tool 'Default Maven' // Must exist
+                    echo "Maven found at: ${mvn}"
+                    withSonarQubeEnv('MySonarQubeServer') {
+                        sh """
+                            ${mvn}/bin/mvn clean verify sonar:sonar \
+                                -Dsonar.projectKey=flask-sonar \
+                                -Dsonar.projectName='flask-sonar' \
+                                -Dsonar.login=${SONAR_TOKEN}
+                        """
                     }
                 }
             }
@@ -83,3 +77,4 @@ pipeline {
         }
     }
 }
+
