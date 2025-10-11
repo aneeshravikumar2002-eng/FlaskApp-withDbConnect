@@ -17,28 +17,16 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 script {
-                    def mvn
-                    try {
-                        mvn = tool 'Default Maven'
-                        echo "Maven found at: ${mvn}"
-                    } catch (err) {
-                        error """
-                        Maven tool 'Default Maven' not found!
-                        Please configure Maven in Jenkins under:
-                        Manage Jenkins → Global Tool Configuration → Maven
-                        """
-                    }
-
-                    // Run SonarQube securely
-                    withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN_SECURE')]) {
-                        withSonarQubeEnv('My SonarQube Server') {
-                            sh """#!/bin/bash
+                    def mvn = tool 'Default Maven'
+                    echo "Maven found at: ${mvn}"
+                    
+                    withSonarQubeEnv('My SonarQube Server') {
+                        sh """#!/bin/bash
                             ${mvn}/bin/mvn clean verify sonar:sonar \
                                 -Dsonar.projectKey=flask-sonar \
                                 -Dsonar.projectName='flask-sonar' \
-                                -Dsonar.login=$SONAR_TOKEN_SECURE
-                            """
-                        }
+                                -Dsonar.login=${SONAR_TOKEN}
+                        """
                     }
                 }
             }
@@ -47,7 +35,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 echo 'Building Docker image...'
-                sh """
+                sh """#!/bin/bash
                     docker build -t aneesh292002/flask-app:${BUILD_NUMBER} \
                                  -t aneesh292002/flask-app:latest .
                 """
@@ -57,7 +45,7 @@ pipeline {
         stage('Run Docker Container') {
             steps {
                 echo 'Running Docker container...'
-                sh """
+                sh """#!/bin/bash
                     docker stop flask-container || true
                     docker rm flask-container || true
                     docker run -d --name flask-container -p 5001:5000 aneesh292002/flask-app:latest
@@ -89,3 +77,4 @@ pipeline {
         }
     }
 }
+
