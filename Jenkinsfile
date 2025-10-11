@@ -17,16 +17,16 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 script {
-                    def mvn = tool 'Default Maven'
-                    echo "Maven found at: ${mvn}"
+                    // Use SonarScanner instead of Maven for Python
+                    def scannerHome = tool 'SonarScanner'
 
                     withSonarQubeEnv('My SonarQube Server') {
-                        // Run Maven inside repo root or subfolder with pom.xml
                         dir('.') {
                             sh """
-                                ${mvn}/bin/mvn clean verify sonar:sonar \
+                                ${scannerHome}/bin/sonar-scanner \
                                     -Dsonar.projectKey=flask-sonar \
-                                    -Dsonar.projectName='flask-sonar' \
+                                    -Dsonar.projectName=flask-sonar \
+                                    -Dsonar.sources=. \
                                     -Dsonar.login=$SONAR_TOKEN
                             """
                         }
@@ -80,5 +80,3 @@ pipeline {
         }
     }
 }
-
-
