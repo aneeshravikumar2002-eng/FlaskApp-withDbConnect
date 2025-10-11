@@ -3,7 +3,6 @@ pipeline {
 
     environment {
         DOCKERHUB_CRED = credentials('dockerhub-login')   // Docker Hub credentials
-        SONAR_TOKEN    = credentials('sonar-token')        // SonarQube token
     }
 
     stages {
@@ -17,18 +16,18 @@ pipeline {
 
         stage('SonarQube Analysis') {
             steps {
-                script {
-                    def scannerHome = tool 'SonarScanner'
-
-                    withSonarQubeEnv('My SonarQube Server') {
-                        sh """
-                            ${scannerHome}/bin/sonar-scanner \
-                                -Dsonar.projectKey=flask-sonar \
-                                -Dsonar.projectName=flask-sonar \
-                                -Dsonar.sources=. \
-                                -Dsonar.python.version=3.10 \
-                                -Dsonar.token=$SONAR_TOKEN
-                        """
+                withSonarQubeEnv('My SonarQube Server') {
+                    withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
+                        script {
+                            def scannerHome = tool 'SonarScanner'
+                            sh """
+                                ${scannerHome}/bin/sonar-scanner \
+                                    -Dsonar.projectKey=flask-sonar \
+                                    -Dsonar.projectName=flask-sonar \
+                                    -Dsonar.sources=. \
+                                    -Dsonar.python.version=3.10
+                            """
+                        }
                     }
                 }
             }
@@ -72,7 +71,7 @@ pipeline {
 
     post {
         failure {
-            echo 'Build failed. Docker artifacts may still be available for debugging.'
+            echo 'Build failed. Check logs for details.'
         }
         success {
             echo 'Pipeline completed successfully!'
