@@ -17,9 +17,21 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 script {
-                    // Mandatory Maven & SonarQube analysis
-                    def mvn = tool 'Default Maven' // Must exist
-                    echo "Maven found at: ${mvn}"
+                    // Try to get Maven tool
+                    def mvn
+                    try {
+                        mvn = tool 'Default Maven'
+                        echo "Maven found at: ${mvn}"
+                    } catch (err) {
+                        error """
+                        Maven tool 'Default Maven' not found!
+                        Please configure Maven in Jenkins under:
+                        Manage Jenkins → Global Tool Configuration → Maven
+                        and make sure the name matches exactly.
+                        """
+                    }
+
+                    // Run SonarQube analysis
                     withSonarQubeEnv('MySonarQubeServer') {
                         sh """
                             ${mvn}/bin/mvn clean verify sonar:sonar \
