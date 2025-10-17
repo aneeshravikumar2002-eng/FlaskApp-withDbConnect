@@ -54,10 +54,7 @@ pipeline {
                     def scannerHome = tool 'SonarScanner' 
                     withSonarQubeEnv('My SonarQube Server') { 
                         sh "${scannerHome}/bin/sonar-scanner \
-                            -Dsonar.projectKey=python-1 \
-                            -Dsonar.projectName='python-1' \
-                            -Dsonar.sources=."
-                    }
+                           
                 }
             }
         }
@@ -67,5 +64,8 @@ pipeline {
         failure {
             echo 'Build failed. Keeping Docker artifacts for debugging.'
         }
+        successful {
+            echo 'Build success'     
+            
     }
 }
