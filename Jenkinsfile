@@ -64,7 +64,8 @@ pipeline {
             echo 'Build failed. Keeping Docker artifacts for debugging.'
         }
         successful {
-            echo 'Build success'     
+            echo 'Build success'
+        }
             
     }
 }
