@@ -9,7 +9,7 @@ pipeline {
         stage('git clone') {
             steps {
                 echo 'Checking out repository...'
-                git 'https://github.com/aneeshravikumar2002-eng/FlaskApp-withDbConnect.git'
+                git branch: 'main', url: 'https://github.com/aneeshravikumar2002-eng/FlaskApp-withDbConnect.git'
             }
         }
 
